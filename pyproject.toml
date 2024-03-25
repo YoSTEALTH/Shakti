@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=60", "wheel", "cython>=3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shakti"
+dynamic = ["version"]
+authors = [{name="Ritesh"}]
+readme = {file="README.rst", content-type="text/x-rst"}
+# license = {file="LICENSE.txt", content-type="text"}
+requires-python = ">=3.8"
+dependencies = ["dynamic-import", "liburing"]
+description = "..."
+classifiers = ["Topic :: Software Development",
+               "License :: Other/Proprietary License",
+               "Intended Audience :: Developers",
+               "Operating System :: POSIX :: Linux",
+               "Programming Language :: Python :: 3.8",
+               "Programming Language :: Python :: 3.9",
+               "Programming Language :: Python :: 3.10",
+               "Programming Language :: Python :: 3.11",
+               "Programming Language :: Python :: 3.12",
+               "Development Status :: 1 - Planning"]
+               # 1 - Planning
+               # 2 - Pre-Alpha
+               # 3 - Alpha
+               # 4 - Beta
+               # 5 - Production/Stable
+               # 6 - Mature
+               # 7 - Inactive
+
+[project.urls]
+Homepage = "https://github.com/YoSTEALTH/Shakti"
+Issues = "https://github.com/YoSTEALTH/Shakti/issues"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools]
+zip-safe = false
+
+[tool.setuptools.dynamic]
+version = {attr="shakti.__version__"}
+
+[tool.setuptools.package-data]
+"*" = ["*.pyx", "*.pxd"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["*.c"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# for debugging locally
+# ---------------------
+# [tool.pytest.ini_options]
+# pythonpath = ["src"]
+
+# [tool.coverage.run]
+# plugins = ["Cython.Coverage"]
