@@ -22,9 +22,7 @@ jobs:
       # Runners
       - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip flake8 pytest
-          python3 -m pip install --upgrade git+https://github.com/YoSTEALTH/Liburing
-          python3 -m pip install --upgrade .
+          python3 -m pip install --upgrade pip .[test]
       # TODO: need to add `cython-lint`
       - name: Lint with flake8
         run: |
