@@ -2,6 +2,7 @@
 
 Shakti
 ======
+
 Work in progress...
 
 Shakti will be providing developers with fast & powerful yet easy to use Python Async Interface, without the complexity of using `liburing` and `io_uring` directly.
@@ -20,6 +21,7 @@ Requires
 
 Install directly from GitHub:
 -------
+
 .. code-block:: python
     
     # note: includes `liburing`
@@ -46,6 +48,7 @@ Example
     if __name__ == '__main__':
         with Timeit():
             run(main())
+
 
 .. |test-status| image:: https://github.com/YoSTEALTH/Shakti/actions/workflows/test.yml/badge.svg?branch=master&event=push
     :target: https://github.com/YoSTEALTH/Shakti/actions/workflows/test.yml

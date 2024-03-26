@@ -5,7 +5,7 @@ from Cython.Compiler import Options
 from Cython.Distutils import Extension
 
 
-debug = True  # <- manually change this
+debug = False  # <- manually change this
 threads = cpu_count()//2 or 1  # use half of cpu resources
 
 # compiler options
