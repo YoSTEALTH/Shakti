@@ -4,7 +4,7 @@ Shakti
 ======
 Work in progress...
 
-Shakti will be providing developers with fast & powerful at easy to use Python Async Interface, without the complexity of using `liburing` and `io_uring` directly.
+Shakti will be providing developers with fast & powerful yet easy to use Python Async Interface, without the complexity of using `liburing` and `io_uring` directly.
 
 * Mostly all events are planned to go through `io_uring` backend, this is a design choice.
 
@@ -19,12 +19,10 @@ Requires
 
 
 Install directly from GitHub:
-
+-------
 .. code-block:: python
-
-    # `liburing` must be installed first
-    python3 -m pip install --upgrade git+https://github.com/YoSTEALTH/Liburing
-
+    
+    # note: includes `liburing`
     python3 -m pip install --upgrade git+https://github.com/YoSTEALTH/Shakti
 
 
