@@ -1,6 +1,5 @@
 from libc.errno cimport errno
-from liburing.lib.uring cimport *
-from liburing.queue cimport io_uring_sqe, io_uring_sqe_set_data
+from liburing.queue cimport __IOSQE_ASYNC, io_uring_sqe, io_uring_sqe_set_data
 from liburing.time cimport timespec, io_uring_prep_timeout
 from liburing.error cimport trap_error
 
