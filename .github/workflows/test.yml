@@ -23,6 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip -vvvv .[test]
+          ls -alFR
       # TODO: need to add `cython-lint`
       - name: Lint with flake8
         run: |
