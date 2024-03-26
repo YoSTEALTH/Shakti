@@ -20,7 +20,7 @@ Requires
 
 
 Install directly from GitHub:
--------
+-----------------------------
 
 .. code-block:: python
     
