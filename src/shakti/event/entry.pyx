@@ -34,7 +34,7 @@ def sleep(double second, __u8 flags=0, *, bint error=False) -> None:
         io_uring_sqe sqe = io_uring_sqe()
         timespec ts = timespec(second)  # prepare timeout
 
-    sqe.flags = __IOSQE_ASYNC
+    sqe.flags = IOSQE_ASYNC
     io_uring_sqe_set_data(sqe, entry)
 
     io_uring_prep_timeout(sqe, ts, 0, flags)  # note: `count=1` means no timer!

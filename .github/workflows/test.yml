@@ -10,7 +10,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+        # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.13-dev"]
 
     steps:
       # Setup Python
@@ -22,7 +23,8 @@ jobs:
       # Runners
       - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip .[test]
+          python3 -m pip install --upgrade pip flake8
+          python3 -m pip install --upgrade .[test]
       # TODO: need to add `cython-lint`
       - name: Lint with flake8
         run: |

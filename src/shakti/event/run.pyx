@@ -55,7 +55,7 @@ cdef void run_c(tuple coroutine, unsigned int entries=1024, unsigned int flags=0
 
             sqe = io_uring_get_sqe(ring)  # get sqe
             io_uring_prep_nop(sqe)
-            sqe.flags = __IOSQE_ASYNC
+            sqe.flags = IOSQE_ASYNC
             io_uring_sqe_set_data(sqe, entry)
 
         # event manager

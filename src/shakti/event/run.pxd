@@ -1,5 +1,5 @@
 from cpython.ref cimport Py_INCREF, Py_DECREF
-from liburing.queue cimport __IOSQE_ASYNC, \
+from liburing.queue cimport IOSQE_ASYNC, \
                             io_uring, io_uring_sqe, io_uring_queue_init, io_uring_get_sqe, \
                             io_uring_prep_nop, io_uring_submit, io_uring_peek_batch_cqe, \
                             io_uring_wait_cqe_nr, io_uring_cqe_get_data, io_uring_sqe_set_data, \
