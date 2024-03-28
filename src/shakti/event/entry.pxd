@@ -1,5 +1,5 @@
 from libc.errno cimport errno
-from liburing.lib.type cimport __u8, __s32
+from libc.stdint cimport uint8_t, int32_t
 from liburing.queue cimport IOSQE_ASYNC, io_uring_sqe, io_uring_sqe_set_data
 from liburing.time cimport timespec, io_uring_prep_timeout
 from liburing.error cimport trap_error
@@ -12,8 +12,8 @@ cpdef enum JOBS:
 
 cdef class Entry:
     cdef:
-        __u8            job
+        uint8_t         job
         io_uring_sqe    sqe
         public object   coro
-        __s32           result
+        int32_t         result
         # list            holder
