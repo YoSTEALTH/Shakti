@@ -10,7 +10,7 @@ cdef class Entry:
 
 
 @coroutine
-def sleep(double second, __u8 flags=0, *, bint error=False) -> None:
+def sleep(double second, uint8_t flags=0, *, bint error=False) -> None:
     '''
         Type
             second: int | float     # double
