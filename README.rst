@@ -24,8 +24,8 @@ Install directly from GitHub:
 
 .. code-block:: python
     
-    # note: includes `liburing`
-    python3 -m pip install --upgrade git+https://github.com/YoSTEALTH/Shakti
+    # Use multi-thread for faster install. Change `-j4` to higher/lower value. Includes `liburing`.
+    python3 -m pip install --upgrade --config-setting="--build-option=build_ext -j4" git+https://github.com/YoSTEALTH/Shakti
 
 
 Example
