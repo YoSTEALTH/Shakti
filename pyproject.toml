@@ -1,17 +1,16 @@
 [build-system]
+build-backend = "setuptools.build_meta"
 requires = ["setuptools>=60", "wheel", "cython>=3",
             "liburing @ git+https://github.com/YoSTEALTH/Liburing.git"]
-build-backend = "setuptools.build_meta"
 
 [project]
 name = "shakti"
 dynamic = ["version"]
 authors = [{name="Ritesh"}]
 readme = {file="README.rst", content-type="text/x-rst"}
-# license = {file="LICENSE.txt", content-type="text"}
+license = {file="LICENSE.txt", content-type="text"}
 requires-python = ">=3.8"
-dependencies = ["dynamic-import"]
-# dependencies = ["dynamic-import", "liburing @ git+https://github.com/YoSTEALTH/Liburing.git"]
+dependencies = ["dynamic-import", "liburing @ git+https://github.com/YoSTEALTH/Liburing.git"]
 description = "..."
 classifiers = ["Topic :: Software Development",
                "License :: Other/Proprietary License",
@@ -38,8 +37,8 @@ Issues = "https://github.com/YoSTEALTH/Shakti/issues"
 [project.optional-dependencies]
 test = ["pytest"]
 
-# [tool.setuptools]
-# zip-safe = false
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.dynamic]
 version = {attr="shakti.__version__"}
@@ -47,11 +46,6 @@ version = {attr="shakti.__version__"}
 [tool.setuptools.package-data]
 "*" = ["*.pyx", "*.pxd"]
 
-[tool.setuptools.exclude-package-data]
-"*" = ["*.c"]
-
-[tool.setuptools.packages.find]
-where = ["src"]
 
 # for debugging locally
 # ---------------------
