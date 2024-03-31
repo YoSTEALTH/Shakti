@@ -1,0 +1,3 @@
+graft example
+graft test
+global-exclude *.py[cod] # note: must run last to exclude properly
