@@ -1,5 +1,5 @@
 graft example
 graft test
 
-exclude src/liburing/*.c
+exclude src/shakti/*/*.c
 global-exclude *.py[cod] # note: must run last to exclude properly
