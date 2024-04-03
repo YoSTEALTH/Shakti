@@ -3,13 +3,16 @@
 Shakti
 ======
 
-Work in progress...
+Shakti will be providing developers with fast & powerful yet easy to use Python Async Interface, without the complexity of using `Liburing`_ and ``io_uring`` directly.
 
-Shakti will be providing developers with fast & powerful yet easy to use Python Async Interface, without the complexity of using `liburing` and `io_uring` directly.
+* Mostly all events are planned to go through ``io_uring`` backend, this is a design choice.
 
-* Mostly all events are planned to go through `io_uring` backend, this is a design choice.
+This is when ``io_uring`` starts becoming fun to use!
 
-This is when `io_uring` starts becoming fun to use!
+
+*** NOTE ***
+------------
+Work in progress... This project is in early ``planning`` state, so... its ok to play around with it but not for any type of serious development, yet.
 
 
 Requires
@@ -24,7 +27,7 @@ Install directly from GitHub:
 
 .. code-block:: python
     
-    # Use multi-thread for faster install. Change `-j4` to higher/lower value. Includes `liburing`.
+    # Use multi-thread for faster install. Change ``-j4`` to higher/lower value. Includes ``liburing``.
     python3 -m pip install --upgrade --config-setting="--build-option=build_ext -j4" git+https://github.com/YoSTEALTH/Shakti
 
 
@@ -49,6 +52,8 @@ Example
         with Timeit():
             run(main())
 
+
+.. _Liburing: https://github.com/YoSTEALTH/Liburing
 
 .. |test-status| image:: https://github.com/YoSTEALTH/Shakti/actions/workflows/test.yml/badge.svg?branch=master&event=push
     :target: https://github.com/YoSTEALTH/Shakti/actions/workflows/test.yml
