@@ -2,7 +2,8 @@ from libc.errno cimport errno
 from libc.stdint cimport uint8_t, int32_t
 from liburing.time cimport __IORING_TIMEOUT_BOOTTIME, __IORING_TIMEOUT_REALTIME, \
                            timespec, io_uring_prep_timeout
-from liburing.queue cimport __IOSQE_ASYNC, io_uring_sqe, io_uring_sqe_set_data
+from liburing.queue cimport __IOSQE_ASYNC, io_uring_sqe, io_uring_sqe_set_flags, \
+                            io_uring_sqe_set_data
 from liburing.error cimport trap_error
 
 

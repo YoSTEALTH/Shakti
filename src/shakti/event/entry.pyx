@@ -34,7 +34,7 @@ def sleep(double second, uint8_t flags=0, *, bint error=False) -> None:
         io_uring_sqe sqe = io_uring_sqe()
         timespec ts = timespec(second)  # prepare timeout
 
-    sqe.flags = __IOSQE_ASYNC
+    io_uring_sqe_set_flags(sqe, __IOSQE_ASYNC)
     io_uring_sqe_set_data(sqe, entry)
     io_uring_prep_timeout(sqe, ts, 0, flags)  # note: `count=1` means no timer!
 
@@ -74,7 +74,7 @@ def entry(io_uring_sqe sqe, *, uint8_t flags=IOSQE_ASYNC, bint error=True)-> int
     '''
     cdef str msg
 
-    if len(sqe) > 1:
+    if sqe.len > 1:
         msg = '`entry(sqe)` received `> 1` entries, try using `entries()` or `help(entry)`'
         raise ValueError(msg)
 
@@ -85,7 +85,7 @@ def entry(io_uring_sqe sqe, *, uint8_t flags=IOSQE_ASYNC, bint error=True)-> int
 
     cdef Entry entry = Entry()
 
-    sqe.flags |= flags
+    io_uring_sqe_set_flags(sqe, flags)
     io_uring_sqe_set_data(sqe, entry)
 
     entry.job = ENTRY
