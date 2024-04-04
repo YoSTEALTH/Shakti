@@ -1,7 +1,7 @@
 |test-status|
 
-Shakti
-======
+Shakti (Work in progress ... )
+==============================
 
 Shakti will be providing developers with fast & powerful yet easy to use Python Async Interface, without the complexity of using `Liburing`_ and ``io_uring`` directly.
 
@@ -10,8 +10,8 @@ Shakti will be providing developers with fast & powerful yet easy to use Python 
 This is when ``io_uring`` starts becoming fun to use!
 
 
-*** NOTE ***
-------------
+*****NOTE*****
+--------------
 Work in progress... This project is in early ``planning`` state, so... its ok to play around with it but not for any type of serious development, yet.
 
 
@@ -22,13 +22,27 @@ Requires
     - Python 3.8+
 
 
-Install directly from GitHub:
------------------------------
+Install directly from GitHub
+----------------------------
 
 .. code-block:: python
     
     # Use multi-thread for faster install. Change ``-j4`` to higher/lower value. Includes ``liburing``.
     python3 -m pip install --upgrade --config-setting="--build-option=build_ext -j4" git+https://github.com/YoSTEALTH/Shakti
+
+
+Docs
+----
+
+To find out all the class, functions and definitions:
+
+.. code-block:: python
+    
+    import shakti
+
+    print(dir(shakti))  # to see all the importable names (this will not load all the modules)
+    help(shakti)        # to see all the help docs (this will load all the modules.)
+
 
 
 Example
