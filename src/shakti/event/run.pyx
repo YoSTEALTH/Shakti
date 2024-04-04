@@ -37,6 +37,7 @@ cdef void run_c(tuple coroutine, unsigned int entries=1024, unsigned int flags=0
         io_uring_cqe    c, cqe = io_uring_cqe()
         Entry           entry, event
         unsigned int    coro_len, index, cqe_ready=0, counter=0
+        str             msg
 
     if entries < (coro_len := len(coroutine)):
         raise ValueError('`run()` - `entries` is set too low!')
@@ -47,15 +48,16 @@ cdef void run_c(tuple coroutine, unsigned int entries=1024, unsigned int flags=0
         # prep coroutine to work with `io_uring` event manager
         for index in range(coro_len):
             if not isinstance(coroutine[index], CoroutineType):
-                raise TypeError('`run()` only accepts `CoroutineType`, '
-                                'like async function. Refer to `help(run)`')
+                msg = '`run()` only accepts `CoroutineType`, ' \
+                      'like async function. Refer to `help(run)`'
+                raise TypeError()
 
             entry = Entry()
             entry.coro = coroutine[index]
 
             sqe = io_uring_get_sqe(ring)  # get sqe
             io_uring_prep_nop(sqe)
-            sqe.flags = IOSQE_ASYNC
+            sqe.flags = __IOSQE_ASYNC
             io_uring_sqe_set_data(sqe, entry)
 
         # event manager
@@ -88,16 +90,15 @@ cdef void run_c(tuple coroutine, unsigned int entries=1024, unsigned int flags=0
                     # print('StopIteration:', event.coro)
                 else:
                     if entry.job & ENTRY:
-                        sqe = entry.sqe
-                        entry.sqe = None  # free up `sqe`
-                        entry.coro = event.coro
-                        if not io_uring_put_sqe(ring, sqe):
+                        if not io_uring_put_sqe(ring, entry.sqe):
                             counter += io_uring_submit(ring)
-                            if not io_uring_put_sqe(ring, sqe):  # try again
+                            if not io_uring_put_sqe(ring, entry.sqe):  # try again
                                 raise ValueError('`run()` - length of `sqe` > `entries`')
+                        entry.coro = event.coro
+                        entry.sqe = None  # free up `sqe`
                     else:
-                        raise NotImplementedError('`run()` received unrecognized `job` %u'
-                                                  % entry.job)
+                        msg = '`run()` received unrecognized `job` %u' % entry.job
+                        raise NotImplementedError(msg)
             # free seen entries
             io_uring_cq_advance(ring, cqe_ready)
     finally:
