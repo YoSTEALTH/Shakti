@@ -1,28 +1,3 @@
-cpdef double time(T.clockid_t flag=T.CLOCK_REALTIME):
-    ''' Time
-
-        Example
-            >>> time()
-            >>> time(CLOCK_MONOTONIC_RAW)
-
-        Flags
-            CLOCK_REALTIME  # default
-            CLOCK_MONOTONIC
-            # Linux-specific clocks
-            CLOCK_PROCESS_CPUTIME_ID
-            CLOCK_THREAD_CPUTIME_ID
-            CLOCK_MONOTONIC_RAW
-            CLOCK_REALTIME_COARSE
-            CLOCK_MONOTONIC_COARSE
-            CLOCK_BOOTTIME
-            CLOCK_REALTIME_ALARM
-            CLOCK_BOOTTIME_ALARM
-    '''
-    cdef T.timespec ts
-    T.clock_gettime(flag, &ts)
-    return ts.tv_sec + (ts.tv_nsec / 1_000_000_000)
-
-
 cdef class Timeit:
     ''' Simple Benchmark
 
@@ -56,25 +31,25 @@ cdef class Timeit:
     '''
     def __cinit__(self, bint print=True):
         self.print = print
-        self.total_time = time(T.CLOCK_MONOTONIC)
+        self.total_time = clock_gettime(CLOCK_MONOTONIC)
         self.eclipsing_time = 0
 
     def __enter__(self):
         return self
 
     def __exit__(self, *errors):
-        self.total_time = time(T.CLOCK_MONOTONIC) - self.total_time
+        self.total_time = clock_gettime(CLOCK_MONOTONIC) - self.total_time
         if self.print:
             print(f'------------------------------\nTotal Time: {self.total_time:.16f}')
 
     @property
     def start(self)-> double:
-        self.eclipsing_time = time(T.CLOCK_MONOTONIC) - self.eclipsing_time
+        self.eclipsing_time = clock_gettime(CLOCK_MONOTONIC) - self.eclipsing_time
         return self.eclipsing_time
 
     @property
     def stop(self)-> double:
-        cdef double result = time(T.CLOCK_MONOTONIC) - self.eclipsing_time
+        cdef double result = clock_gettime(CLOCK_MONOTONIC) - self.eclipsing_time
         if self.print:
             print(f'------------------------\nTime: {result:.16f}\n')
         self.eclipsing_time = 0

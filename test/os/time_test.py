@@ -2,10 +2,6 @@ import time
 import shakti
 
 
-def test_time():
-    assert time.time() < shakti.time() < time.time()
-
-
 def test_Timeit():
     with shakti.Timeit(print=False) as t:
         # first
