@@ -1,7 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools>=60", "wheel", "cython>=3",
-            "liburing @ git+https://github.com/YoSTEALTH/Liburing.git"]
+requires = ["setuptools>=60", "wheel", "cython>=3","liburing"]
 
 [project]
 name = "shakti"
@@ -10,7 +9,7 @@ authors = [{name="Ritesh"}]
 readme = {file="README.rst", content-type="text/x-rst"}
 license = {file="LICENSE.txt", content-type="text"}
 requires-python = ">=3.8"
-dependencies = ["dynamic-import", "liburing @ git+https://github.com/YoSTEALTH/Liburing.git"]
+dependencies = ["dynamic-import", "liburing"]
 description = "..."
 classifiers = ["Topic :: Software Development",
                "License :: Other/Proprietary License",
@@ -53,7 +52,7 @@ version = {attr="shakti.__version__"}
 # [tool.coverage.run]
 # plugins = ["Cython.Coverage"]
 
-[tool.cython-lint]
-max-line-length = 100
-ignore = ['E221']
+# [tool.cython-lint]
+# max-line-length = 100
+# ignore = ['E221']
 # for debugging locally END <<<
