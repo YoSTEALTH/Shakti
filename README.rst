@@ -12,7 +12,14 @@ This is when ``io_uring`` starts becoming fun to use!
 
 *****NOTE*****
 --------------
+
 Work in progress... This project is in early ``planning`` state, so... its ok to play around with it but not for any type of serious development, yet.
+
+
+Bug
+---
+
+Currently there is a bug running around causing ``Segfault`` on higher volume e.g. `SQE(1024)`, not really sure what causes it. If you find it do let me know ;)
 
 
 Requires
@@ -27,8 +34,11 @@ Install directly from GitHub
 
 .. code-block:: python
     
-    # Use multi-thread for faster install. Change ``-j4`` to higher/lower value. Includes ``liburing``.
-    python3 -m pip install --upgrade --config-setting="--build-option=build_ext -j4" git+https://github.com/YoSTEALTH/Shakti
+    # To install | upgrade. Includes ``liburing``.
+    python3 -m pip install --upgrade git+https://github.com/YoSTEALTH/Shakti
+
+    # To uninstall
+    python3 -m pip uninstall shakti
 
 
 Docs
