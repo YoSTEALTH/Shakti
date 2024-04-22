@@ -7,6 +7,11 @@ from Cython.Distutils import Extension
 
 
 threads = cpu_count()
+# compiler options
+Options.annotate = False
+Options.fast_fail = True
+Options.docstrings = True
+Options.warning_errors = False
 
 
 class BuildExt(build_ext):
@@ -16,12 +21,6 @@ class BuildExt(build_ext):
 
 
 if __name__ == '__main__':
-    # compiler options
-    Options.annotate = False
-    Options.fast_fail = True
-    Options.docstrings = True
-    Options.warning_errors = False
-
     extension = [Extension(name='shakti.*',  # where the `.so` will be saved.
                            sources=['src/shakti/*/*.pyx'],
                            language='c',
