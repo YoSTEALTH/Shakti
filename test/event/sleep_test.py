@@ -9,12 +9,12 @@ def test_sleep():
         shakti.run(
             sleep_test()
         )
-    assert 1.5 < t.stop < 1.55
+    assert 1.25 < t.stop < 1.3
 
 
 async def sleep_test():
     await shakti.sleep(1)   # int
-    await shakti.sleep(.5)  # float
+    await shakti.sleep(.25)  # float
 
     msg = re.escape('`sleep(second)` can not be `< 0`')
     with pytest.raises(ValueError, match=msg):
