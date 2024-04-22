@@ -1,7 +1,7 @@
 from types import CoroutineType
 
 
-def run(*coroutine: tuple, unsigned int entries=1024, unsigned int flags=0) -> None:
+def run(*coroutine: tuple, unsigned int entries=1024, unsigned int flags=0) -> list[object]:
     '''
         Type
             coroutine:  CoroutineType
@@ -20,86 +20,121 @@ def run(*coroutine: tuple, unsigned int entries=1024, unsigned int flags=0) -> N
             ...             print('.', end='')
             ...         await sleep(1)
             ...     print('bye!')
-            ... 
-            ... 
-
+            ...
+            ...
             >>> if __name__ == '__main__':
             ...     with Timeit():
             ...         run(main())
     '''
-    run_c(coroutine, entries, flags)
-
-
-cdef void run_c(tuple coroutine, unsigned int entries=1024, unsigned int flags=0) except *:
     cdef:
+        unsigned int    coro_len = len(coroutine)
         io_uring        ring = io_uring()
-        io_uring_sqe    sqe
-        io_uring_cqe    c, cqe = io_uring_cqe()
-        Entry           entry, event
-        unsigned int    coro_len, index, cqe_ready=0, counter=0
-        str             msg
 
-    if entries < (coro_len := len(coroutine)):
+    if entries < coro_len:
         raise ValueError('`run()` - `entries` is set too low!')
 
-    try:  # start `io_uring` engine.
-        io_uring_queue_init(entries, ring, flags)
-
-        # prep coroutine to work with `io_uring` event manager
-        for index in range(coro_len):
-            if not isinstance(coroutine[index], CoroutineType):
-                msg = '`run()` only accepts `CoroutineType`, ' \
-                      'like async function. Refer to `help(run)`'
-                raise TypeError()
-
-            entry = Entry()
-            entry.coro = coroutine[index]
-
-            sqe = io_uring_get_sqe(ring)  # get sqe
-            io_uring_prep_nop(sqe)
-            sqe.flags = __IOSQE_ASYNC
-            io_uring_sqe_set_data(sqe, entry)
-
-        # event manager
-        while counter := (io_uring_submit(ring) + counter - cqe_ready):
-            # print('counter:', counter)
-            # get count of how many event(s) are ready
-            if not (cqe_ready := io_uring_peek_batch_cqe(ring, cqe, MAX_LINKING)):
-                # wait for at least `1` event to be ready.
-                io_uring_wait_cqe_nr(ring, cqe, 1)
-                continue
-            # print('cqe_ready:', cqe_ready)
-
-            # ready event(s)
-            for index in range(cqe_ready):
-                c = cqe[index]
-                event = io_uring_cqe_get_data(c)
-                event.result = c.res
-                # print('event:', event)
-                # print('index:', index)
-                # print('c.user_data:', cqe.user_data)
-                # print('c.res:', event.result)
-                # print('event:', event)
-                if not event.coro:  # event(s) without `coro` are just collecting results
-                    continue
-                try:
-                    entry = event.coro.send(event if event.job else None)
-                    # note: event without `job` are coroutine initialization
-                except StopIteration:
-                    pass  # TODO: need to account for coro return values.
-                    # print('StopIteration:', event.coro)
-                else:
-                    if entry.job & ENTRY:
-                        if not io_uring_put_sqe(ring, entry.sqe):
-                            counter += io_uring_submit(ring)
-                            if not io_uring_put_sqe(ring, entry.sqe):  # try again
-                                raise ValueError('`run()` - length of `sqe` > `entries`')
-                        entry.coro = event.coro
-                        entry.sqe = None  # free up `sqe`
-                    else:
-                        msg = '`run()` received unrecognized `job` %u' % entry.job
-                        raise NotImplementedError(msg)
-            # free seen entries
-            io_uring_cq_advance(ring, cqe_ready)
+    io_uring_queue_init(entries, ring, flags)
+    try:
+        initialize(ring, coroutine, coro_len)
+        return engine(ring, entries, coro_len)
     finally:
         io_uring_queue_exit(ring)
+
+
+cdef inline void initialize(io_uring ring, tuple coroutine, unsigned int coro_len):
+    cdef:
+        __u8    i
+        SQE     sqe
+        str     msg
+    for i in range(coro_len):
+        if not isinstance(coroutine[i], CoroutineType):
+            msg = '`run()` only accepts `CoroutineType`, ' \
+                  'like async function. Refer to `help(run)`'
+            raise TypeError(msg)
+
+        sqe = SQE()
+        sqe.job = CORO
+        sqe.coro = coroutine[i].send
+        io_uring_prep_nop(sqe)
+        io_uring_sqe_set_flags(sqe, __IOSQE_ASYNC)
+        io_uring_sqe_set_data64(sqe, <__u64><void*>sqe)
+        io_uring_put_sqe(ring, sqe)
+        Py_INCREF(sqe)
+
+cdef inline SQE completion_entry(io_uring_cqe cqe, unsigned int index):
+    cdef:
+        __s32   result
+        __u64   user_data
+    result, user_data = cqe.get_index(index)
+    sqe = <SQE><void*><uintptr_t>user_data
+    sqe.result = result
+    if sqe.job & CORO:
+        sqe.job = NOJOB
+        Py_DECREF(sqe)
+    if not sqe.coro:
+        return None  # event(s) without `coro` are just collecting results
+    return sqe
+
+cdef inline unsigned int submission_entry(io_uring ring, SQE sqe, object send):
+    cdef:
+        str             msg
+        SQE             _sqe
+        unsigned int    counter=0
+
+    if sqe.job & ENTRY:
+        sqe.coro = send
+        if not io_uring_put_sqe(ring, sqe):
+            counter += io_uring_submit(ring)
+            if not io_uring_put_sqe(ring, sqe):  # try again
+                raise RuntimeError('`run()` - length of `sqe > entries`')
+    elif sqe.job & ENTRIES:
+        sqe.job = NOJOB
+        # assign `coro` to last `_sqe`
+        _sqe = sqe[sqe.len-1]
+        _sqe.coro = send
+        del _sqe
+        if not io_uring_put_sqe(ring, sqe):
+            counter += io_uring_submit(ring)
+            if not io_uring_put_sqe(ring, sqe):  # try again
+                raise RuntimeError('`run()` - length of `sqe > entries`')
+    else:
+        msg = '`run()` received unrecognized `job` %u' % sqe.job
+        raise NotImplementedError(msg)
+
+    return counter
+
+cdef inline list[object] engine(io_uring ring, unsigned int entries, unsigned int coro_len):
+    cdef:
+        SQE             sqe
+        io_uring_cqe    cqe = io_uring_cqe()
+        unsigned int    i, counter=0, cq_ready=0
+        list[object]    r = []
+        __s32           result
+        __u64           user_data
+
+    # event manager
+    while counter := ((io_uring_submit(ring) if io_uring_sq_ready(ring) else 0)
+                      + counter - cq_ready):
+        # get count of how many event(s) are ready and fill `cqe`
+        while not (cq_ready := io_uring_peek_batch_cqe(ring, cqe, counter)):
+            io_uring_wait_cqe_nr(ring, cqe, 1)  # wait for at least `1` event to be ready.
+
+        for i in range(cq_ready):
+            # completion entry
+            if not (sqe := completion_entry(cqe, i)):
+                continue
+            send = sqe.coro
+            try:
+                sqe = send(True if sqe.job else None)
+                # note: event without `job` are coroutine initialization
+            except StopIteration as e:
+                # print('StopIteration:', e.value)
+                r.append(e.value)
+                coro_len -= 1
+                if coro_len:
+                    continue
+                io_uring_cq_advance(ring, cq_ready)
+                return r
+            else:  # submission entry
+                counter += submission_entry(ring, sqe, send)
+        io_uring_cq_advance(ring, cq_ready)  # free seen entries
