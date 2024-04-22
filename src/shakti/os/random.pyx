@@ -7,15 +7,17 @@ async def random(size_t length)-> bytes:
     '''
     cdef:
         int fd
-        SQE sqe = SQE(), sqes = SQE(2)
+        SQE sqe, sqes
 
     buffer = bytes(length)
     iov = iovec(buffer)
 
+    sqe = SQE()
     io_uring_prep_openat(sqe, b'/dev/random')   # open
     await sqe
     fd = sqe.result
 
+    sqes = SQE(2)
     io_uring_prep_readv(sqes[0], fd, iov)        # read &
     io_uring_prep_close(sqes[1], fd)             # close
     await sqes

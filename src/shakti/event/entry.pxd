@@ -1,6 +1,7 @@
 from cpython.ref cimport Py_INCREF, Py_DECREF
-from liburing.lib.io_uring cimport *
-from liburing.queue cimport io_uring_sqe_set_flags, io_uring_sqe_set_data, \
+from liburing.lib.type cimport __u8, __u16, __s32, __u64
+from liburing.queue cimport IOSQE_ASYNC, IOSQE_IO_HARDLINK, \
+                            io_uring_sqe_set_flags, io_uring_sqe_set_data, \
                             io_uring_sqe_set_data64, io_uring_cqe_get_data64, \
                             io_uring_sqe, io_uring_prep_nop
 from liburing.error cimport trap_error, memory_error, index_error
@@ -22,7 +23,7 @@ cdef class SQE(io_uring_sqe):
         bint            error
 
 
-cpdef enum __entry_define__:
-    IOSQE_ASYNC = __IOSQE_ASYNC
-    IORING_TIMEOUT_BOOTTIME = __IORING_TIMEOUT_BOOTTIME
-    IORING_TIMEOUT_REALTIME = __IORING_TIMEOUT_REALTIME
+# cpdef enum __entry_define__:
+#     IOSQE_ASYNC = __IOSQE_ASYNC
+#     IORING_TIMEOUT_BOOTTIME = __IORING_TIMEOUT_BOOTTIME
+#     IORING_TIMEOUT_REALTIME = __IORING_TIMEOUT_REALTIME

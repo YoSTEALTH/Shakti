@@ -28,7 +28,7 @@ cdef class SQE(io_uring_sqe):
             self.job = ENTRY
             self.coro = None
             self.result = 0
-            io_uring_sqe_set_flags(self, __IOSQE_ASYNC)
+            io_uring_sqe_set_flags(self, IOSQE_ASYNC)
             io_uring_sqe_set_data64(self, <__u64><void*>self)
         elif self.len > 1:  # multiple
             for i in range(self.len):
@@ -39,15 +39,15 @@ cdef class SQE(io_uring_sqe):
                     io_uring_sqe_set_data64(sqe, <__u64><void*>sqe)
                     if i < self.len-1:  # middle
                         sqe.job = NOJOB
-                        io_uring_sqe_set_flags(sqe, __IOSQE_ASYNC | __IOSQE_IO_HARDLINK)
+                        io_uring_sqe_set_flags(sqe, IOSQE_ASYNC | IOSQE_IO_HARDLINK)
                     else:  # last
                         sqe.job = ENTRIES
-                        io_uring_sqe_set_flags(sqe, __IOSQE_ASYNC)
+                        io_uring_sqe_set_flags(sqe, IOSQE_ASYNC)
                 else:  # first
                     self.job = ENTRIES
                     self.result = 0
                     self.coro = None
-                    io_uring_sqe_set_flags(self, __IOSQE_ASYNC | __IOSQE_IO_HARDLINK)
+                    io_uring_sqe_set_flags(self, IOSQE_ASYNC | IOSQE_IO_HARDLINK)
                     io_uring_sqe_set_data64(self, <__u64><void*>self)
         else:
             raise NotImplementedError
