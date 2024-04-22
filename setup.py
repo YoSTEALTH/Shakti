@@ -1,16 +1,25 @@
 from os import cpu_count
 from setuptools import setup
+from setuptools.command.build_ext import build_ext
 from Cython.Build import cythonize
 from Cython.Compiler import Options
 from Cython.Distutils import Extension
 
 
-threads = cpu_count()//2 or 1  # use half of cpu resources
+threads = cpu_count()
 # compiler options
 Options.annotate = False
 Options.fast_fail = True
 Options.docstrings = True
 Options.warning_errors = False
+
+
+class BuildExt(build_ext):
+    def initialize_options(self):
+        super().initialize_options()
+        self.parallel = threads  # manually set
+
+
 extension = [Extension(name='shakti.*',  # where the `.so` will be saved.
                        sources=['src/shakti/*/*.pyx'],
                        language='c',
@@ -18,7 +27,8 @@ extension = [Extension(name='shakti.*',  # where the `.so` will be saved.
 
 
 if __name__ == '__main__':
-    setup(ext_modules=cythonize(extension,
+    setup(cmdclass={'build_ext': BuildExt},
+          ext_modules=cythonize(extension,
                                 nthreads=threads,
                                 compiler_directives={
                                     'embedsignature': True,  # show all `__doc__`
