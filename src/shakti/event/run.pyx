@@ -56,7 +56,7 @@ cdef inline void initialize(io_uring ring, tuple coroutine, unsigned int coro_le
         sqe.job = CORO
         sqe.coro = coroutine[i].send
         io_uring_prep_nop(sqe)
-        io_uring_sqe_set_flags(sqe, __IOSQE_ASYNC)
+        io_uring_sqe_set_flags(sqe, IOSQE_ASYNC)
         io_uring_sqe_set_data64(sqe, <__u64><void*>sqe)
         io_uring_put_sqe(ring, sqe)
         Py_INCREF(sqe)
