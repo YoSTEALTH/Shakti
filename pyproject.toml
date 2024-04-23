@@ -47,13 +47,13 @@ version = {attr="shakti.__version__"}
 "*" = ["*.pyx", "*.pxd"]
 
 # for debugging locally START >>>
-[tool.pytest.ini_options]
-pythonpath = ["src"]
+# [tool.pytest.ini_options]
+# pythonpath = ["src"]
 
-[tool.coverage.run]
-plugins = ["Cython.Coverage"]
+# [tool.coverage.run]
+# plugins = ["Cython.Coverage"]
 
-[tool.cython-lint]
-max-line-length = 100
-ignore = ['E221']
+# [tool.cython-lint]
+# max-line-length = 100
+# ignore = ['E221']
 # for debugging locally END <<<
