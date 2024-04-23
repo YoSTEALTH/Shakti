@@ -30,9 +30,6 @@ cdef class AsyncBase:
             >>> async with Client() as (client, addr):
             ...     ...
     '''
-    def __cinit__(self):
-        self.__awaited__ = False
-
     async def __ainit__(self):
         ''' `__ainit__` method must be created
 
@@ -42,9 +39,9 @@ cdef class AsyncBase:
                             # or
                     ``async with AsyncBase():``
         '''
-        cdef str name, msg
-        name = self.__class__.__name__
-        msg = f'`{name}()` - user must implement `async def __ainit__(self)` method'
+        cdef str msg
+        msg = self.__class__.__name__
+        msg = f'`{msg}()` - user must implement `async def __ainit__(self)` method'
         raise NotImplementedError(msg)
 
     # midsync
