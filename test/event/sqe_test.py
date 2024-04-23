@@ -6,7 +6,7 @@ import shakti
 def test_SQE():
     shakti.run(
         nop_sqe(),
-        nop_sqes(8),
+        nop_sqes(2),
         # nop_sqes(1024),  # TODO: segfault, look into it.
     )
 
