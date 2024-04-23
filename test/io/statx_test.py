@@ -1,17 +1,18 @@
 import pytest
+import socket
 import shakti
 
 
 def test_statx(tmp_dir):
     shakti.run(
-        statx_class(),
+        statx_class(tmp_dir),
         bad_file(),
         type_check(),
         exists_check(tmp_dir)
     )
 
 
-async def statx_class():
+async def statx_class(tmp_dir):
     async with shakti.Statx('/dev/zero') as statx:
         assert statx.stx_size == 0
         assert statx.isfile is False
@@ -20,7 +21,11 @@ async def statx_class():
     assert statx.stx_size == 0
     assert statx.isfile is False
 
-    async with shakti.Statx('/tmp/.X11-unix/X0') as statx:
+    # create socket file.
+    server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    server.bind(sock_path := str(tmp_dir / 'test.sock'))
+
+    async with shakti.Statx(sock_path) as statx:
         assert statx.stx_size == 0
         assert statx.isfile is False
         assert statx.issock is True
