@@ -1,9 +1,49 @@
 cdef class SQE(io_uring_sqe):
-    '''
-        Note
-            - `SQE.user_data` is automatically set by `SQE()`.
-            - Multiple sqe's e.g: `SQE(2)` are linked using `IOSQE_IO_HARDLINK`
-    '''
+
+    def __cinit__(self, __u16 num=1, bint error=True):
+        ''' Shakti Queue Entry
+
+            Type
+                num:    int  - number of entries to create
+                error:  bool - automatically raise error
+                return: None
+
+            Example
+                # single
+                >>> sqe = SQE()
+                >>> io_uring_prep_openat(sqe, b'/dev/zero')
+                >>> await sqe
+                >>> sqe.result  # fd
+                4
+
+                # multiple
+                >>> sqe = SQE(2)
+                >>> io_uring_prep_openat(sqe[0], b'/dev/zero')
+                >>> io_uring_prep_openat(sqe[1], b'/dev/zero')
+                >>> await sqe
+                >>> sqe[0].result  # fd
+                4
+                >>> sqe[1].result  # fd
+                5
+
+                # context manager
+                >>> async with SQE() as sqe:
+                ...     io_uring_prep_openat(sqe, b'/dev/zero')
+                >>> sqe.result  # fd
+                4
+
+                # do not catch & raise error for `sqe.result`
+                >>> SQE(123, False)  # or
+                >>> SQE(123, error=False)
+
+            Note
+                - `SQE.user_data` is automatically set by `SQE()`.
+                - Multiple sqe's e.g: `SQE(2)` are linked using `IOSQE_IO_HARDLINK`
+                - context manger runs await in `__aexit__` thus need to catch result
+                outside of `aysnc with` block
+        '''
+        self.error = error
+
     def __getitem__(self, unsigned int index):
         cdef SQE    sqe
         if self.ptr is not NULL:
@@ -23,7 +63,6 @@ cdef class SQE(io_uring_sqe):
         cdef:
             __u16   i
             SQE     sqe
-
         if self.len == 1:  # single
             self.job = ENTRY
             self.coro = None
@@ -52,3 +91,19 @@ cdef class SQE(io_uring_sqe):
         else:
             raise NotImplementedError
         yield self
+        if self.error:
+            if self.len == 1:
+                trap_error(self.result)
+            else:
+                for i in range(self.len):
+                    trap_error(self[i].result)
+
+    # midsync
+    def __aexit__(self, *errors):
+        if any(errors):
+            return False
+        return self  # `await self`
+
+    async def __aenter__(self):
+        return self
+

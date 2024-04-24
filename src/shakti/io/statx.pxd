@@ -1,8 +1,7 @@
-cimport cython
+from libc.errno cimport ENOENT
 from liburing.lib.type cimport __AT_FDCWD
 from liburing.lib.statx cimport *
 from liburing.statx cimport statx, io_uring_prep_statx
-from liburing.error cimport trap_error
 from ..event.entry cimport SQE
 
 
