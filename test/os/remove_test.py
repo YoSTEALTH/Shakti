@@ -2,7 +2,7 @@ import pytest
 import shakti
 
 
-def test(tmp_dir):
+def test_remove(tmp_dir):
     shakti.run(
         remove_file_dir(tmp_dir)
     )
