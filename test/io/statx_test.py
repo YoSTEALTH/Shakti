@@ -17,7 +17,7 @@ async def statx_class(tmp_dir):
         assert statx.stx_size == 0
         assert statx.isfile is False
 
-    statx = await shakti.Statx(b'/dev/zero')
+    statx = await shakti.Statx('/dev/zero')
     assert statx.stx_size == 0
     assert statx.isfile is False
 
