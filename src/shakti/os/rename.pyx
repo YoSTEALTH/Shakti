@@ -1,5 +1,4 @@
 from liburing.lib.type cimport *
-from liburing.error cimport trap_error
 from liburing.os cimport io_uring_prep_renameat
 from ..event.entry cimport SQE
 
@@ -10,7 +9,7 @@ async def rename(str old_path not None,
                  *,
                  int old_dir_fd=__AT_FDCWD,
                  int new_dir_fd=__AT_FDCWD)-> None:
-    ''' Rename File or Dirctory
+    ''' Rename File | Dirctory
 
         Example
             >>> await rename('old-name.txt', 'new-name.txt')
@@ -37,7 +36,6 @@ async def rename(str old_path not None,
         bytes   _new_path = new_path.encode()
     io_uring_prep_renameat(sqe, _old_path, _new_path, old_dir_fd, new_dir_fd, flags)
     await sqe
-    trap_error(sqe.result)
 
 
 cpdef enum __rename_define__:

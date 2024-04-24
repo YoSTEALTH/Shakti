@@ -28,7 +28,7 @@ async def remove(object path not None, bint is_dir=False, *,
             Linux 5.11
     '''
     cdef:
-        SQE sqe = SQE()
+        SQE sqe = SQE(1, False)
         int flags = __AT_REMOVEDIR if is_dir else 0
 
     if type(path) is str:
