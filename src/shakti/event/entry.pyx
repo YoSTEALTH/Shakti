@@ -39,7 +39,7 @@ cdef class SQE(io_uring_sqe):
             Note
                 - `SQE.user_data` is automatically set by `SQE()`.
                 - Multiple sqe's e.g: `SQE(2)` are linked using `IOSQE_IO_HARDLINK`
-                - context manger runs await in `__aexit__` thus need to catch result
+                - context manger runs await in `__aexit__` thus need to check result
                 outside of `aysnc with` block
         '''
         self.error = error
