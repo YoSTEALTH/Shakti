@@ -74,6 +74,4 @@ async def exists(str path not None)-> bool:
         SQE     sqe = SQE(1, False)
     io_uring_prep_statx(sqe, None, _path)
     await sqe
-    if sqe.result == -ENOENT:  # FileNotFoundError
-        return False
-    return True
+    return sqe.result != -ENOENT  # FileNotFoundError

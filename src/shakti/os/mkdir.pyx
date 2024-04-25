@@ -14,3 +14,5 @@ async def mkdir(str path not None, mode_t mode=0o777, *, int dir_fd=__AT_FDCWD):
     io_uring_prep_mkdirat(sqe, _path, mode, dir_fd)
     await sqe
 
+
+# TODO: makedirs
