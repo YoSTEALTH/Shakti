@@ -46,7 +46,7 @@ cdef inline void initialize(io_uring ring, tuple coroutine, unsigned int coro_le
         unsigned int    i
         SQE             sqe
         str             msg
-        PyObject *      ptr
+        # PyObject *      ptr
 
     for i in range(coro_len):
         if not isinstance(coroutine[i], CoroutineType):
