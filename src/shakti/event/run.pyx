@@ -43,9 +43,11 @@ def run(*coroutine: tuple, unsigned int entries=1024, unsigned int flags=0) -> l
 
 cdef inline void initialize(io_uring ring, tuple coroutine, unsigned int coro_len):
     cdef:
-        __u8    i
-        SQE     sqe
-        str     msg
+        unsigned int    i
+        SQE             sqe
+        str             msg
+        PyObject *      ptr
+
     for i in range(coro_len):
         if not isinstance(coroutine[i], CoroutineType):
             msg = '`run()` only accepts `CoroutineType`, ' \
