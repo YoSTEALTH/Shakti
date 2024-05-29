@@ -113,13 +113,13 @@ cdef list engine(io_uring ring, unsigned int entries, unsigned int coro_len):
             try:
                 sqe = coro.send(value or None)
             except StopIteration as e:
-                if sqe.job & CORO:
-                    r.append(e.value)
-                    coro_len -= 1
-                    if coro_len:
-                        continue
-                    io_uring_cq_advance(ring, cq_ready)
-                    return r
+                # if sqe.job & CORO:  # TODO
+                r.append(e.value)
+                coro_len -= 1
+                if coro_len:
+                    continue
+                io_uring_cq_advance(ring, cq_ready)
+                return r
             else:
                 counter += submission_entry(ring, sqe, coro)
         io_uring_cq_advance(ring, cq_ready)  # free seen entries
