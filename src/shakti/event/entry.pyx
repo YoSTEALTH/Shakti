@@ -1,12 +1,16 @@
 cdef class SQE(io_uring_sqe):
 
-    def __cinit__(self, __u16 num=1, bint error=True):
+    # note: `num` is used by `io_uring_sqe`
+    def __init__(self, __u16 num=1, bint error=True, *,
+                 unsigned int flags=IOSQE_ASYNC, unsigned int link_flags=IOSQE_IO_HARDLINK):
         ''' Shakti Queue Entry
 
             Type
-                num:    int  - number of entries to create
-                error:  bool - automatically raise error
-                return: None
+                num:        int  - number of entries to create
+                error:      bool - automatically raise error
+                flags:      int
+                link_flags: int
+                return:     None
 
             Example
                 # single
@@ -43,9 +47,13 @@ cdef class SQE(io_uring_sqe):
                 outside of `aysnc with` block
         '''
         self.error = error
+        self.flags = flags
+        if not (link_flags & (IOSQE_IO_LINK | IOSQE_IO_HARDLINK)):
+            raise ValueError('SQE(link_flags) must be `IOSQE_IO_HARDLINK` or `IOSQE_IO_LINK`')
+        self.link_flags = link_flags
 
     def __getitem__(self, unsigned int index):
-        cdef SQE    sqe
+        cdef SQE sqe
         if self.ptr is not NULL:
             if index == 0:
                 return self
@@ -63,13 +71,14 @@ cdef class SQE(io_uring_sqe):
         cdef:
             __u16   i
             SQE     sqe
+
         if self.len == 1:  # single
             self.job = ENTRY
             self.coro = None
             self.result = 0
-            io_uring_sqe_set_flags(self, IOSQE_ASYNC)
+            io_uring_sqe_set_flags(self, self.flags)
             io_uring_sqe_set_data64(self, <__u64><void*>self)
-        elif self.len > 1:  # multiple
+        elif 1025 > self.len > 1:  # multiple
             for i in range(self.len):
                 if i:
                     sqe = self[i]
@@ -78,25 +87,28 @@ cdef class SQE(io_uring_sqe):
                     io_uring_sqe_set_data64(sqe, <__u64><void*>sqe)
                     if i < self.len-1:  # middle
                         sqe.job = NOJOB
-                        io_uring_sqe_set_flags(sqe, IOSQE_ASYNC | IOSQE_IO_HARDLINK)
+                        io_uring_sqe_set_flags(sqe, self.flags | self.link_flags)
                     else:  # last
                         sqe.job = ENTRIES
-                        io_uring_sqe_set_flags(sqe, IOSQE_ASYNC)
+                        io_uring_sqe_set_flags(sqe, self.flags)
                 else:  # first
                     self.job = ENTRIES
-                    self.result = 0
                     self.coro = None
-                    io_uring_sqe_set_flags(self, IOSQE_ASYNC | IOSQE_IO_HARDLINK)
+                    self.result = 0
+                    io_uring_sqe_set_flags(self, self.flags | self.link_flags)
                     io_uring_sqe_set_data64(self, <__u64><void*>self)
         else:
-            raise NotImplementedError
+            raise NotImplementedError('num > 1024')
+
         yield self
+
         if self.error:
             if self.len == 1:
                 trap_error(self.result)
             else:
                 for i in range(self.len):
                     trap_error(self[i].result)
+        # else: don't catch error
 
     # midsync
     def __aexit__(self, *errors):
