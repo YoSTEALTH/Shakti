@@ -1,5 +1,7 @@
 from os import cpu_count
+from os.path import join, dirname
 from setuptools import setup
+from importlib.util import find_spec
 from setuptools.command.build_ext import build_ext
 from Cython.Build import cythonize
 from Cython.Compiler import Options
@@ -10,6 +12,14 @@ class BuildExt(build_ext):
     def initialize_options(self):
         super().initialize_options()
         self.parallel = threads  # manually set
+
+    def finalize_options(self):
+        super().finalize_options()
+        try:
+            include_path = join(dirname(find_spec('liburing').origin), 'include')
+            self.include_dirs.append(include_path)
+        except AttributeError:
+            raise ImportError('can not find installed `liburing`') from None
 
 
 if __name__ == '__main__':
