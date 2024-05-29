@@ -35,4 +35,4 @@ cdef class Timeit:
     cdef:
         bint print
         double eclipsing_time
-        public double total_time
+        readonly double total_time
