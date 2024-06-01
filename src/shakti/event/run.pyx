@@ -76,8 +76,12 @@ cdef tuple completion_entry(io_uring_cqe cqe, unsigned int index):
         PyObject *  ptr
 
     result, user_data = cqe.get_index(index)
+
+    # result = cqe[index].res
+    # user_data = cqe[index].user_data
+
     if user_data == 0:
-        raise RuntimeError('user_data is NULL', user_data)
+        raise RuntimeError('user_data is NULL', user_data, index)
 
     if (ptr := <PyObject*><uintptr_t>user_data) is NULL:
         raise RuntimeError('cqe ptr is NULL', result, user_data)
@@ -89,22 +93,23 @@ cdef tuple completion_entry(io_uring_cqe cqe, unsigned int index):
         value = False  # start coroutine
     return sqe.coro, value
 
-
 cdef list engine(io_uring ring, unsigned int entries, unsigned int coro_len):
     cdef:
+        int             i, counter = 0, cq_ready = 0
         SQE             sqe
         list            r = []
         bint            value
         object          coro
         io_uring_cqe    cqe = io_uring_cqe()
-        int             i, counter = 0, cq_ready = 0
 
     # event manager
-    while counter := ((io_uring_submit(ring) if io_uring_sq_ready(ring) else 0)
-                      + counter - cq_ready):
+    while counter := ((io_uring_submit(ring) if io_uring_sq_ready(ring) else 0)+counter-cq_ready):
         # get count of how many event(s) are ready and fill `cqe`
-        while not (cq_ready := io_uring_peek_batch_cqe(ring, cqe, counter)):
+        while not (cq_ready := io_uring_cq_ready(ring)):
             io_uring_wait_cqe_nr(ring, cqe, 1)  # wait for at least `1` event to be ready.
+
+        # populated `cqe`
+        io_uring_for_each_cqe(ring, cqe)
 
         for i in range(cq_ready):
             coro, value = completion_entry(cqe, i)
