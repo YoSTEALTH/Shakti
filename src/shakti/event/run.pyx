@@ -54,8 +54,7 @@ cdef void initialize(io_uring ring, tuple coroutine, unsigned int coro_len):
 
     for i in range(coro_len):
         if not isinstance(coro := coroutine[i], CoroutineType):
-            msg = '`run()` only accepts `CoroutineType`, ' \
-                  'like async function. Refer to `help(run)`'
+            msg = '`run()` only accepts `CoroutineType`, like async function. Refer to `help(run)`'
             raise TypeError(msg)
         sqe = SQE()
         Py_XINCREF(ptr := <PyObject*>sqe)
@@ -66,90 +65,65 @@ cdef void initialize(io_uring ring, tuple coroutine, unsigned int coro_len):
         io_uring_sqe_set_data64(sqe, <__u64>ptr)
         io_uring_put_sqe(ring, sqe)
 
-
-cdef tuple completion_entry(io_uring_cqe cqe, unsigned int index):
-    cdef:
-        SQE         sqe
-        bint        value = True
-        __s32       result
-        __u64       user_data
-        PyObject *  ptr
-
-    result, user_data = cqe.get_index(index)
-
-    # result = cqe[index].res
-    # user_data = cqe[index].user_data
-
-    if user_data == 0:
-        raise RuntimeError('user_data is NULL', user_data, index)
-
-    if (ptr := <PyObject*><uintptr_t>user_data) is NULL:
-        raise RuntimeError('cqe ptr is NULL', result, user_data)
-
-    sqe = <SQE>ptr
-    sqe.result = result
-    if sqe.job & CORO:
-        Py_XDECREF(ptr)
-        value = False  # start coroutine
-    return sqe.coro, value
-
 cdef list engine(io_uring ring, unsigned int entries, unsigned int coro_len):
     cdef:
-        int             i, counter = 0, cq_ready = 0
-        SQE             sqe
+        SQE             sqe, _sqe
         list            r = []
-        bint            value
-        object          coro
+        __s32           res
+        __u64           user_data
+        object          coro, value
+        unicode         msg
         io_uring_cqe    cqe = io_uring_cqe()
+        unsigned int    index=0, counter=0, cq_ready=0
 
     # event manager
     while counter := ((io_uring_submit(ring) if io_uring_sq_ready(ring) else 0)+counter-cq_ready):
-        # get count of how many event(s) are ready and fill `cqe`
-        while not (cq_ready := io_uring_cq_ready(ring)):
+        cq_ready = 0
+        while io_uring_peek_cqe(ring, cqe) == -EAGAIN:
             io_uring_wait_cqe_nr(ring, cqe, 1)  # wait for at least `1` event to be ready.
 
-        # populated `cqe`
-        io_uring_for_each_cqe(ring, cqe)
+        for index in range(io_uring_for_each_cqe(ring, cqe)):
+            res, user_data = cqe.get_index(index)
+            if user_data == 0:
+                break
+            cq_ready += 1
 
-        for i in range(cq_ready):
-            coro, value = completion_entry(cqe, i)
-            if not coro:
+            sqe = <SQE><void*><uintptr_t>user_data
+            sqe.result = res
+            if sqe.job & CORO:
+                Py_DECREF(sqe)
+                value = None    # start coroutine
+            else:
+                value = False   # bogus value
+
+            if not (coro := sqe.coro):
                 continue
+
             try:
-                sqe = coro.send(value or None)
+                sqe = coro.send(value)
             except StopIteration as e:
+                # print('StopIteration', e.value)
                 # if sqe.job & CORO:  # TODO
                 r.append(e.value)
-                coro_len -= 1
-                if coro_len:
+                if (coro_len := coro_len-1):
                     continue
-                io_uring_cq_advance(ring, cq_ready)
                 return r
             else:
-                counter += submission_entry(ring, sqe, coro)
-        io_uring_cq_advance(ring, cq_ready)  # free seen entries
+                if sqe.job & ENTRY:
+                    sqe.coro = coro
+                elif sqe.job & ENTRIES:
+                    sqe.job = NOJOB  # change first job
+                    _sqe = sqe[sqe.len-1]
+                    _sqe.coro = coro  # last entry
+                elif sqe.job & TASK:
+                    raise NotImplementedError('TASK')
+                else:
+                    msg = f'`run()` received unrecognized `job` {sqe.job}'
+                    raise NotImplementedError(msg)
 
-
-cdef unsigned int submission_entry(io_uring ring, SQE sqe, object coro):
-    cdef:
-        unicode         msg
-        SQE             _sqe
-        unsigned int    counter = 0
-
-    if sqe.job & ENTRY:
-        sqe.coro = coro
-    elif sqe.job & ENTRIES:
-        sqe.job = NOJOB  # change first job
-        _sqe = sqe[sqe.len-1]
-        _sqe.coro = coro  # last entry
-    elif sqe.job & TASK:
-        raise NotImplementedError('TASK')
-    else:
-        msg = f'`run()` received unrecognized `job` {sqe.job}'
-        raise NotImplementedError(msg)
-
-    if not io_uring_put_sqe(ring, sqe):
-        counter = io_uring_submit(ring)
-        if not io_uring_put_sqe(ring, sqe):  # try again
-            raise RuntimeError('`run()` - length of `sqe > entries`')
-    return counter
+                if not io_uring_put_sqe(ring, sqe):
+                    counter += io_uring_submit(ring)
+                    if not io_uring_put_sqe(ring, sqe):  # try again
+                        raise RuntimeError('`run()` - length of `sqe > entries`')
+        if cq_ready:
+            io_uring_cq_advance(ring, cq_ready)  # free seen entries
