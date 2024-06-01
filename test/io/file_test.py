@@ -26,7 +26,7 @@ async def open_close(tmp_dir):
         assert stat.isfile
 
     with pytest.raises(OSError, match='Bad file descriptor'):
-        await shakti.close(123)
+        await shakti.close(12345)
 
 
 async def read():

@@ -16,12 +16,6 @@ This is when ``io_uring`` starts becoming fun to use!
 Work in progress... This project is in early ``planning`` state, so... its ok to play around with it but not for any type of serious development, yet.
 
 
-Bug
----
-
-Currently there is a bug running around causing ``Segfault`` on higher volume e.g. `SQE(1024)`, not really sure what causes it. If you find it do let me know ;)
-
-
 Requires
 --------
 
@@ -52,7 +46,7 @@ To find out all the class, functions and definitions:
 
     print(dir(shakti))  # to see all the importable names (this will not load all the modules)
     help(shakti)        # to see all the help docs (this will load all the modules.)
-
+    help(shakti.Statx)  # to see specific function/class docs.
 
 
 Example
@@ -106,7 +100,7 @@ __
 
 .. code-block:: python
 
-    from shakti import run, mkdir, rename, remove, Statx, exists
+    from shakti import Statx, run, mkdir, rename, remove, exists
 
 
     async def main():
@@ -122,7 +116,7 @@ __
             print('is directory:', stat.isdir)
             print('modified time:', stat.stx_mtime)
 
-        # rename
+        # rename / move
         print('rename directory:', mkdir_path, '-to->', rename_path)
         await rename(mkdir_path, rename_path)
 
@@ -130,6 +124,7 @@ __
         print(f'{mkdir_path!r} exists:', await exists(mkdir_path))
         print(f'{rename_path!r} exists:', await exists(rename_path))
 
+        # remove
         await remove(rename_path, is_dir=True)
         print(f'removed {rename_path!r} exists:', await exists(rename_path))
         print('done.')
@@ -137,7 +132,6 @@ __
 
     if __name__ == '__main__':
         run(main())
-
 
 
 .. _Liburing: https://github.com/YoSTEALTH/Liburing
