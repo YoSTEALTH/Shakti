@@ -1,4 +1,4 @@
-from shakti import run, mkdir, rename, remove, Statx, exists
+from shakti import Statx, run, mkdir, rename, remove, exists
 
 
 async def main():
@@ -14,7 +14,7 @@ async def main():
         print('is directory:', stat.isdir)
         print('modified time:', stat.stx_mtime)
 
-    # rename
+    # rename / move
     print('rename directory:', mkdir_path, '-to->', rename_path)
     await rename(mkdir_path, rename_path)
 
@@ -22,6 +22,7 @@ async def main():
     print(f'{mkdir_path!r} exists:', await exists(mkdir_path))
     print(f'{rename_path!r} exists:', await exists(rename_path))
 
+    # remove
     await remove(rename_path, is_dir=True)
     print(f'removed {rename_path!r} exists:', await exists(rename_path))
     print('done.')

@@ -39,7 +39,7 @@ cdef class AsyncBase:
                             # or
                     ``async with AsyncBase():``
         '''
-        cdef str msg
+        cdef unicode msg
         msg = self.__class__.__name__
         msg = f'`{msg}()` - user must implement `async def __ainit__(self)` method'
         raise NotImplementedError(msg)
