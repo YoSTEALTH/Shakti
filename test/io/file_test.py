@@ -1,4 +1,3 @@
-import pytest
 import shakti
 
 
@@ -24,9 +23,6 @@ async def open_close(tmp_dir):
 
     async with shakti.Statx(file_path) as stat:
         assert stat.isfile
-
-    with pytest.raises(OSError, match='Bad file descriptor'):
-        await shakti.close(12345)
 
 
 async def read():

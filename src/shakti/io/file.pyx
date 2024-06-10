@@ -85,9 +85,3 @@ async def write(int fd, const unsigned char[:] buffer, __u64 offset=0)-> __s32:
     io_uring_prep_write(sqe, fd, buffer, length, offset)
     await sqe
     return sqe.result
-
-
-async def close(int fd):
-    ''' >>> await close(fd) '''
-    async with SQE() as sqe:
-        io_uring_prep_close(sqe, fd)
