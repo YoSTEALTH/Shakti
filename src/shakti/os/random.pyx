@@ -22,4 +22,5 @@ async def random(unsigned int length)-> bytes:
     io_uring_prep_read(sqes, sqe.result, buffer, length)
     io_uring_prep_close(sqes[1], sqe.result)
     await sqes
-    return bytes(buffer if sqes.result == length else buffer[:sqes.result])
+    result = sqes.result  # warning: int == unsigned int
+    return bytes(buffer if result == length else buffer[:result])
