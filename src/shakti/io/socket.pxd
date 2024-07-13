@@ -1,6 +1,14 @@
 from libc.errno cimport ENFILE
+from cpython.array cimport array
 from liburing.lib.socket cimport *
-from liburing.socket cimport io_uring_prep_socket, io_uring_prep_socket_direct_alloc
+from liburing.lib.type cimport bool as bool_t
+from liburing.socket cimport sockaddr, io_uring_prep_socket, io_uring_prep_socket_direct_alloc, \
+                             io_uring_prep_shutdown, io_uring_prep_send, io_uring_prep_recv, \
+                             io_uring_prep_accept, io_uring_prep_connect, \
+                             io_uring_prep_setsockopt, io_uring_prep_getsockopt
+from liburing.socket_extra cimport bind as _bind, getsockname as _getsockname, listen as _listen, \
+                                   getpeername as _getpeername, getaddrinfo as _getaddrinfo, isIP
+from liburing.time cimport timespec, io_uring_prep_link_timeout
 from liburing.error cimport raise_error
 from ..event.entry cimport SQE
 
