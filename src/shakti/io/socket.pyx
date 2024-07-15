@@ -193,11 +193,8 @@ async def getsockopt(int sockfd, int level, int optname)-> int:
             - This function is still flawed, needs more testing.
     '''
     cdef:
-        timespec ts = timespec(.001)
-        SQE sqe = SQE(2, False)
+        SQE sqe = SQE()
         array optval = array('i', [0])
     io_uring_prep_getsockopt(sqe, sockfd, level, optname, optval)
-    io_uring_prep_link_timeout(sqe[1], ts, 0)
-    # note: timeout is needed or else `getsockopt` will hang forever!
     await sqe
     return optval[0]
