@@ -5,7 +5,7 @@ cdef class SQE(io_uring_sqe):
 
     # note: `num` is used by `io_uring_sqe`
     def __init__(self, __u16 num=1, bint error=True, *,
-                 unsigned int flags=IOSQE_ASYNC, unsigned int link_flag=IOSQE_IO_HARDLINK):
+                 unsigned int flags=0, unsigned int link_flag=IOSQE_IO_HARDLINK):
         ''' Shakti Queue Entry
 
             Type
@@ -72,8 +72,8 @@ cdef class SQE(io_uring_sqe):
 
     def __await__(self):
         cdef:
-            __u16   i
             SQE     sqe
+            __u16   i
 
         if self.len == 1:  # single
             self.job = ENTRY
