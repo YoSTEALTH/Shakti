@@ -8,10 +8,14 @@ def test_socket():
         socket(),
         bind(),
         listen(),
-        # set_get_sockname(),  # TODO: buggy
         echo_client(random_port),
         echo_server(random_port),
     )
+
+
+@pytest.mark.skip_linux(6.7)
+def test_sockname():
+    shakti.run(set_get_sockname())
 
 
 async def socket():
@@ -56,18 +60,6 @@ async def listen():
     await shakti.close(sockfd)
 
 
-async def set_get_sockname():
-    assert (socket_fd := await shakti.socket()) > 0
-    try:
-        await shakti.setsockopt(socket_fd, shakti.SOL_SOCKET, shakti.SO_REUSEADDR, 1)
-        assert await shakti.getsockopt(socket_fd, shakti.SOL_SOCKET, shakti.SO_REUSEADDR) == 1
-
-        await shakti.setsockopt(socket_fd, shakti.SOL_SOCKET, shakti.SO_REUSEADDR, 0)
-        assert await shakti.getsockopt(socket_fd, shakti.SOL_SOCKET, shakti.SO_REUSEADDR) == 0
-    finally:
-        await shakti.close(socket_fd)
-
-
 async def echo_server(random_port):
     assert (server_fd := await shakti.socket()) > 0
     try:
@@ -101,3 +93,15 @@ async def echo_client(random_port):
         assert await shakti.recv(client_fd, 1024) == b'hi from `echo_server`'
     finally:
         await shakti.close(client_fd)
+
+
+async def set_get_sockname():
+    assert (socket_fd := await shakti.socket()) > 0
+    try:
+        await shakti.setsockopt(socket_fd, shakti.SOL_SOCKET, shakti.SO_REUSEADDR, 1)
+        assert await shakti.getsockopt(socket_fd, shakti.SOL_SOCKET, shakti.SO_REUSEADDR) == 1
+
+        await shakti.setsockopt(socket_fd, shakti.SOL_SOCKET, shakti.SO_REUSEADDR, 0)
+        assert await shakti.getsockopt(socket_fd, shakti.SOL_SOCKET, shakti.SO_REUSEADDR) == 0
+    finally:
+        await shakti.close(socket_fd)
