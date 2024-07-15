@@ -85,7 +85,6 @@ cdef void __prep_coroutine(io_uring ring, tuple coroutine, unsigned int coro_len
         sqe.job = CORO
         sqe.coro = coroutine[i]
         io_uring_prep_nop(sqe)
-        io_uring_sqe_set_flags(sqe, IOSQE_ASYNC)
         io_uring_sqe_set_data64(sqe, <__u64>ptr)
         io_uring_put_sqe(ring, sqe)
 
