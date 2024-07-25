@@ -35,7 +35,7 @@ def run(*coroutine: tuple, unsigned int entries=1024, unsigned int flags=0) -> l
     io_uring_queue_init(entries, ring, flags)
     try:
         __prep_coroutine(ring, coroutine, coro_len)
-        return __event_loop(ring, entries, coro_len)
+        return __event_loop(ring, entries)
     finally:
         io_uring_queue_exit(ring)
 
@@ -55,12 +55,16 @@ cdef unsigned int __checkup(unsigned int entries, tuple coroutine):
         raise ValueError(msg)
 
     # pre-check
+    msg = '`run()` only accepts `CoroutineType`, like `async` function.'
+    __check_coroutine(coroutine, coro_len, msg)
+    return coro_len
+
+
+cdef inline void __check_coroutine(tuple coroutine, unsigned int coro_len, unicode msg):
     for i in range(coro_len):
         if not isinstance(coroutine[i], CoroutineType):
             __close_all_coroutine(coroutine, coro_len)
-            msg = '`run()` only accepts `CoroutineType`, like `async` function.'
             raise TypeError(msg)
-    return coro_len
 
 
 cdef inline void __close_all_coroutine(tuple coroutine, unsigned int coro_len) noexcept:
@@ -72,7 +76,10 @@ cdef inline void __close_all_coroutine(tuple coroutine, unsigned int coro_len) n
                 pass  # ignore error while trying to close
 
 
-cdef void __prep_coroutine(io_uring ring, tuple coroutine, unsigned int coro_len):
+cdef inline void __prep_coroutine(io_uring ring,
+                                  tuple coroutine,
+                                  unsigned int coro_len,
+                                  bint sub_coro=False):
     cdef:
         SQE             sqe
         unicode         msg
@@ -84,14 +91,16 @@ cdef void __prep_coroutine(io_uring ring, tuple coroutine, unsigned int coro_len
         Py_XINCREF(ptr := <PyObject*>sqe)
         sqe.job = CORO
         sqe.coro = coroutine[i]
+        sqe.sub_coro = sub_coro
         io_uring_prep_nop(sqe)
         io_uring_sqe_set_data64(sqe, <__u64>ptr)
         io_uring_put_sqe(ring, sqe)
 
 
-cdef list __event_loop(io_uring ring, unsigned int entries, unsigned int coro_len):
+cdef list __event_loop(io_uring ring, unsigned int entries):
     cdef:
         SQE             sqe, _sqe
+        bint            sub_coro
         list            r = []
         __s32           res
         __u64           user_data
@@ -109,7 +118,7 @@ cdef list __event_loop(io_uring ring, unsigned int entries, unsigned int coro_le
         for index in range(io_uring_for_each_cqe(ring, cqe)):
             res, user_data = cqe.get_index(index)
             if not user_data:
-                raise RuntimeError('`engine()` - received `0` from `user_data`')
+                continue
             cq_ready += 1
             if (ptr := <PyObject*><uintptr_t>user_data) is NULL:
                 raise RuntimeError('`engine()` - received `NULL` from `user_data`')
@@ -122,31 +131,35 @@ cdef list __event_loop(io_uring ring, unsigned int entries, unsigned int coro_le
                 value = False   # bogus value
             if not (coro := sqe.coro):
                 continue
-            try:
-                sqe = coro.send(value)
-            except StopIteration as e:
-                # TODO: if not sqe.coro_task:
-                r.append(e.value)
-                if (coro_len := coro_len-1):
-                    continue
-                return r
-            else:
-                if sqe.job & ENTRY:
-                    sqe.coro = coro
-                elif sqe.job & ENTRIES:
-                    sqe.job = NOJOB     # change first job
-                    _sqe = sqe[sqe.len-1]
-                    _sqe.coro = coro    # last entry
-                elif sqe.job & TASK:
-                    raise NotImplementedError('TASK')
+            sub_coro = sqe.sub_coro
+            while True:
+                try:
+                    sqe = coro.send(value)
+                except StopIteration as e:
+                    if not sqe.sub_coro:
+                        r.append(e.value)
                 else:
-                    msg = f'`run()` received unrecognized `job` {sqe.job}'
-                    raise NotImplementedError(msg)
+                    if sqe.job & ENTRY:
+                        sqe.coro = coro
+                        sqe.sub_coro = sub_coro
+                    elif sqe.job & ENTRIES:
+                        sqe.job = NOJOB         # change first job
+                        _sqe = sqe[sqe.len-1]   # last entry
+                        _sqe.coro = coro
+                        _sqe.sub_coro = sub_coro
+                    elif sqe.job & RING:
+                        value = ring
+                        continue
+                    else:
+                        msg = f'`run()` received unrecognized `job` {JOBS(sqe.job).name}'
+                        raise NotImplementedError(msg)
 
-                if not io_uring_put_sqe(ring, sqe):
-                    counter += io_uring_submit(ring)
-                    if not io_uring_put_sqe(ring, sqe):  # try again
-                        msg = '`run()` - length of `sqe > entries`'
-                        raise RuntimeError(msg)
+                    if not io_uring_put_sqe(ring, sqe):
+                        counter += io_uring_submit(ring)
+                        if not io_uring_put_sqe(ring, sqe):  # try again
+                            msg = '`run()` - length of `sqe > entries`'
+                            raise RuntimeError(msg)
+                break
         if cq_ready:
             io_uring_cq_advance(ring, cq_ready)  # free seen entries
+    return r

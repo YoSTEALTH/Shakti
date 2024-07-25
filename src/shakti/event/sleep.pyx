@@ -23,8 +23,8 @@ async def sleep(double second, unsigned int flags=0):
         raise ValueError('`sleep(second)` can not be `< 0`')
 
     cdef:
-        timespec    ts = timespec(second)  # prepare timeout
         SQE         sqe = SQE(1, False)
+        timespec    ts = timespec(second)  # prepare timeout
     io_uring_prep_timeout(sqe, ts, 0, flags)  # note: `count=1` means no timer!
     await sqe
     # note: `ETIME` is returned as result for successfully timing-out.
