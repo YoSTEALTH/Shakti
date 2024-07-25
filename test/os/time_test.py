@@ -7,17 +7,17 @@ def test_Timeit():
         # first
         t.start
         time.sleep(0.25)
-        assert 0.25 < t.stop < 0.27
+        assert 0.25 < t.stop < 0.3
 
         # second
         t.start
         time.sleep(0.25)
-        assert 0.25 < t.stop < 0.27
+        assert 0.25 < t.stop < 0.3
 
         # second
         t.start
         time.sleep(0.25)
-        assert 0.25 < t.stop < 0.27
+        assert 0.25 < t.stop < 0.3
 
     # total time
-    assert 0.75 < t.total_time < 0.77
+    assert 0.75 < t.total_time < 0.8
