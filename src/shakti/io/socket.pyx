@@ -84,11 +84,12 @@ async def recv(int sockfd, unsigned int bufsize, int flags=0):
             b'received data'
     '''
     cdef:
-        SQE sqe = SQE()
-        memoryview buf = memoryview(bytearray(bufsize))
+        SQE         sqe = SQE()
+        memoryview  buf = memoryview(bytearray(bufsize))
     io_uring_prep_recv(sqe, sockfd, buf, bufsize, flags)
     await sqe
-    return bytes(buf[:sqe.result])
+    cdef unsigned int result = sqe.result
+    return bytes(buf[:result] if result != bufsize else buf)
 
 
 async def send(int sockfd, const unsigned char[:] buf, int flags=0):
@@ -103,6 +104,24 @@ async def send(int sockfd, const unsigned char[:] buf, int flags=0):
     io_uring_prep_send(sqe, sockfd, buf, length, flags)
     await sqe
     return sqe.result
+
+
+async def sendall(int sockfd, const unsigned char[:] buf, int flags=0):
+    '''
+        Example
+            >>> await sendall(client_fd, b'send data')
+            10
+    '''
+    cdef:
+        SQE             sqe     = SQE()
+        size_t          length  = len(buf)
+        unsigned int    total   = 0
+
+    while True:
+        io_uring_prep_send(sqe, sockfd, buf[total:], length-total, flags)
+        await sqe
+        if (total := total + sqe.result) == length:
+            break
 
 
 async def shutdown(int sockfd, int how=__SHUT_RDWR):
