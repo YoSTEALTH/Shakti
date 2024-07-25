@@ -137,20 +137,19 @@ ______
 .. code-block:: python
 
     from shakti import SOL_SOCKET, SO_REUSEADDR, run, socket, bind, listen, accept, \
-                       connect, recv, send, shutdown, close, sleep, setsockopt  # task,
+                   connect, recv, send, shutdown, close, sleep, setsockopt, task
 
 
     async def echo_server(host, port):
+        print('Starting Server')
         server_fd = await socket()
         try:
-            print('Starting Server')
             await setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, True)
             await bind(server_fd, host, port)
             await listen(server_fd, 1)
             while client_fd := await accept(server_fd):
-                await client_handler(client_fd)             # temp solution
-                # await task(client_handler(client_fd))     # TODO
-                break
+                await task(client_handler(client_fd))
+                break  # only handles 1 client and exit
         finally:
             await close(server_fd)
             print('Closed Server')
@@ -178,6 +177,7 @@ ______
         host = '127.0.0.1'
         port = 12345
         run(echo_server(host, port), echo_client(host, port))
+
 
 .. code-block:: python
 
