@@ -4,7 +4,7 @@ import shakti
 
 
 def test_run():
-    assert shakti.run() is None
+    assert shakti.run() == []
     assert shakti.run(echo(1), echo(2), echo(3)) == [1, 2, 3]
     shakti.run(*[coro() for i in range(1000)])
 
