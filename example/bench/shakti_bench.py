@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(0, '../../src')
-# import socket as _socket
 from shakti import SOL_SOCKET, SO_REUSEADDR, \
                    run, task, socket, setsockopt, bind, listen, accept, close, recv, sendall
 
@@ -31,7 +28,6 @@ async def echo_server(host, port):
 
 
 async def client_handler(client_fd):
-    # print("client_fd:", client_fd)
     while await recv(client_fd, BUFFSIZE):
         await sendall(client_fd, RESPONSE)
     await close(client_fd)
