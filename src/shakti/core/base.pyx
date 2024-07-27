@@ -39,10 +39,9 @@ cdef class AsyncBase:
                             # or
                     ``async with AsyncBase():``
         '''
-        cdef unicode msg
-        msg = self.__class__.__name__
-        msg = f'`{msg}()` - user must implement `async def __ainit__(self)` method'
-        raise NotImplementedError(msg)
+        self.msg = f'`{self.__class__.__name__}()` - '
+        self.msg += 'user must implement `async def __ainit__(self)` method'
+        raise NotImplementedError(self.msg)
 
     # midsync
     def __await__(self):
@@ -52,7 +51,8 @@ cdef class AsyncBase:
     async def __aenter__(self):
         if self.__awaited__:
             return self
-        r = await self.__ainit__()
+
+        cdef object r = await self.__ainit__()
         self.__awaited__ = True
         return self if r is None else r
 
@@ -61,11 +61,13 @@ cdef class AsyncBase:
             return False
 
     def __enter__(self):
-        cdef str name = self.__class__.__name__
-        raise SyntaxError(f'`with {name}() ...` used, should be `async with {name}() ...`')
+        self.msg = f'`with {self.__class__.__name__}() ...` '
+        self.msg += 'used, should be `async with {name}() ...`'
+        raise SyntaxError(self.msg)
 
     def __exit__(self):
-        cdef str name = self.__class__.__name__
-        raise RuntimeError(f'`{name}()` - use of `__exit__` is not supported, use `__aexit__`')
+        self.msg = f'`{self.__class__.__name__}()` - '
+        self.msg += 'use of `__exit__` is not supported, use `__aexit__`'
+        raise RuntimeError(self.msg)
         # note: this exception does not get triggered normally but added it just
         #       in case user does some funny business.
