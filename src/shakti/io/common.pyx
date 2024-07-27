@@ -1,5 +1,19 @@
-from liburing.common cimport io_uring_prep_close, io_uring_prep_close_direct
-from ..event.entry cimport SQE
+cdef class IOBase(AsyncBase):
+
+    cdef inline void closed(self):
+        if self.fileno < 0:
+            self.msg = f'`{self.__class__.__name__}()` I/O operation on closed'
+            raise UnsupportedOperation(self.msg)
+
+    cdef inline void reading(self):
+        if not self._reading:
+            self.msg = f'`{self.__class__.__name__}()` is not opened in reading "r" mode.'
+            raise UnsupportedOperation(self.msg)
+
+    cdef inline void writing(self):
+        if not self._writing:
+            self.msg = f'`{self.__class__.__name__}()` is not opened in writing "w" mode.'
+            raise UnsupportedOperation(self.msg)
 
 
 async def close(unsigned int fd, bint direct=False):
