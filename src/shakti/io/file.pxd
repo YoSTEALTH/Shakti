@@ -1,9 +1,21 @@
-from liburing.lib.type cimport __s32, __u64
+from liburing.lib.type cimport __s32, __u32, __u64
 from liburing.lib.file cimport *
-from liburing.common cimport AT_FDCWD, io_uring_prep_close
+from liburing.common cimport AT_FDCWD, io_uring_prep_close, io_uring_prep_close_direct
+from liburing.statx cimport STATX_SIZE, statx, io_uring_prep_statx
 from liburing.file cimport open_how, io_uring_prep_openat, io_uring_prep_openat2, \
                            io_uring_prep_read, io_uring_prep_write
 from ..event.entry cimport SQE
+from ..lib.error cimport UnsupportedOperation
+from .common cimport IOBase
+
+
+cdef class File(IOBase):
+    cdef:
+        str             _encoding
+        int             _dir_fd, _seek
+        bint            _bytes, _append, _creating, _direct
+        __u64           _resolve, _flags, _mode
+        readonly bytes  path
 
 
 cpdef enum __file_define__:

@@ -1,19 +1,23 @@
-from shakti import O_CREAT, O_RDWR, O_APPEND, run, open, read, write, close
+from shakti import File, run
 
 
 async def main():
-    fd = await open('/tmp/shakti-test.txt', O_CREAT | O_RDWR | O_APPEND)
-    print('fd:', fd)
+    # create, read & write.
+    async with File('/tmp/test.txt', '!x+') as file:
+        wrote = await file.write('hi... bye!')
+        print('wrote:', wrote)
 
-    wrote = await write(fd, b'hi...bye!')
-    print('wrote:', wrote)
+        content = await file.read(5, 0)  # seek is set to `0`
+        print('read:', content)
 
-    content = await read(fd, 1024)
-    print('read:', content)
-
-    await close(fd)
-    print('closed.')
+        # Other
+        print('fd:', file.fileno)
+        print('path:', file.path)
+        print('active:', bool(file))
 
 
 if __name__ == '__main__':
     run(main())
+
+# Refer to `help(File)` to see full features of `File` class.
+# help(File)
