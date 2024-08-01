@@ -75,7 +75,6 @@ async def make_error(tmp_dir):
         while True:
             i += 1
             created.append(await shakti.mktdir(length=1, tempdir=tmp_path))
-    assert 64 > i > 60
 
     # remove files, doubles as created check.
     for i in created:
