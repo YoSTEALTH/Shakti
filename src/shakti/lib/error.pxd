@@ -9,3 +9,7 @@ cdef class UnsupportedOperation(Exception):
 
 cdef class ConnectionNotEstablishedError(Exception):
     pass  # __module__ = ConnectionError.__module__
+
+
+cdef class DirExistsError(Exception):
+    pass  # __module__ = FileExistsError.__module__
