@@ -17,8 +17,8 @@ Work in progress... This project is in early ``planning`` state, so... its ok to
 Requires
 --------
 
-    - Linux 6.7+
-    - Python 3.8+
+    - Linux 6.11+
+    - Python 3.9+
 
 
 Install directly from GitHub
@@ -118,7 +118,7 @@ ____
         run(main())
 
     # Refer to `help(File)` to see full features of `File` class.
-    # help(File)
+
 
 OS
 __
