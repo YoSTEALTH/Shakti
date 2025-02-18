@@ -6,7 +6,7 @@ from liburing.socket cimport sockaddr, io_uring_prep_socket, io_uring_prep_socke
                              io_uring_prep_shutdown, io_uring_prep_send, io_uring_prep_recv, \
                              io_uring_prep_accept, io_uring_prep_connect, \
                              io_uring_prep_setsockopt, io_uring_prep_getsockopt
-from liburing.socket_extra cimport bind as _bind, getsockname as _getsockname, listen as _listen, \
+from liburing.socket_extra cimport io_uring_prep_bind, io_uring_prep_listen, getsockname as _getsockname, \
                                    getpeername as _getpeername, getaddrinfo as _getaddrinfo, isIP
 from liburing.time cimport timespec, io_uring_prep_link_timeout
 from liburing.error cimport raise_error

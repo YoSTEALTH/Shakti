@@ -159,13 +159,20 @@ async def bind(int sockfd, str host, in_port_t port)-> object:
 
     __getsockname(sockfd, &sa, &size)
 
-    cdef sockaddr addr = sockaddr(sa.sa_family, host.encode(), port)
-    _bind(sockfd, addr)
+    cdef:
+        sockaddr addr = sockaddr(sa.sa_family, host.encode(), port)
+        SQE sqe = SQE()
+    io_uring_prep_bind(sqe, sockfd, addr)
+    await sqe
     return addr
 
 
 async def listen(int sockfd, int backlog)-> int:
-    return _listen(sockfd, backlog)
+    cdef:
+        SQE sqe = SQE()
+    io_uring_prep_listen(sqe, sockfd, backlog)
+    await sqe
+    return sqe.result
 
 
 async def getsockname(int sockfd, sockaddr addr)-> tuple[str, int]:

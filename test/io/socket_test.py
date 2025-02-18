@@ -34,6 +34,7 @@ async def socket():
     # await shakti.close(sock_fd, True)
 
 
+@pytest.mark.skip_linux(6.11)
 async def bind():
     # IPv4
     sockfd = await shakti.socket()
@@ -53,6 +54,7 @@ async def bind():
     # await shakti.close(sockfd)
 
 
+@pytest.mark.skip_linux(6.11)
 async def listen():
     sockfd = await shakti.socket()
     await shakti.bind(sockfd, '127.0.0.1', 0)
@@ -60,6 +62,7 @@ async def listen():
     await shakti.close(sockfd)
 
 
+@pytest.mark.skip_linux(6.11)
 async def echo_server(random_port):
     assert (server_fd := await shakti.socket()) > 0
     try:
