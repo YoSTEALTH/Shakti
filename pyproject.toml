@@ -1,34 +1,38 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools>=60", "wheel", "cython>=3",
-            "liburing @ git+https://github.com/YoSTEALTH/Liburing.git"]
+requires = [
+    "setuptools>=60",
+    "wheel",
+    "cython==3.0.11",
+    "liburing @ git+https://github.com/YoSTEALTH/Liburing.git"
+]
 
 [project]
 name = "shakti"
 dynamic = ["version"]
 authors = [{name="Ritesh"}]
+license-files = ["LICENSE.txt"]
 readme = {file="README.rst", content-type="text/x-rst"}
-license = {file="LICENSE.txt", content-type="text"}
-requires-python = ">=3.8"
-dependencies = ["dynamic-import", "liburing @ git+https://github.com/YoSTEALTH/Liburing.git"]
-description = "..."
-classifiers = ["Topic :: Software Development",
-               "License :: Other/Proprietary License",
-               "Intended Audience :: Developers",
-               "Operating System :: POSIX :: Linux",
-               "Programming Language :: Python :: 3.8",
-               "Programming Language :: Python :: 3.9",
-               "Programming Language :: Python :: 3.10",
-               "Programming Language :: Python :: 3.11",
-               "Programming Language :: Python :: 3.12",
-               "Development Status :: 1 - Planning"]
-               # 1 - Planning
-               # 2 - Pre-Alpha
-               # 3 - Alpha
-               # 4 - Beta
-               # 5 - Production/Stable
-               # 6 - Mature
-               # 7 - Inactive
+requires-python = ">=3.9"
+dependencies = ["dynamic-import", "liburing"]
+description = "Shakti will be providing developers with fast & powerful yet easy to use Python Async Interface, without the complexity of using Liburing & io_uring directly."
+classifiers = [
+    "Topic :: Software Development",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 1 - Planning"
+    # "Development Status :: 2 - Pre-Alpha"
+    # "Development Status :: 3 - Alpha"
+    # "Development Status :: 4 - Beta"
+    # "Development Status :: 5 - Production/Stable"
+    # "Development Status :: 6 - Mature"
+    # "Development Status :: 7 - Inactive"
+]
 
 [project.urls]
 Homepage = "https://github.com/YoSTEALTH/Shakti"
@@ -54,6 +58,6 @@ version = {attr="shakti.__version__"}
 # plugins = ["Cython.Coverage"]
 
 # [tool.cython-lint]
-# max-line-length = 100
+# max-line-length = 120
 # ignore = ['E221']
 # for debugging locally END <<<
